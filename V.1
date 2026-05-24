@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<title>QR Scanner + Kamera</title>
+<style>
+body { font-family: Arial; text-align: center; }
+video { width: 90%; max-width: 400px; margin-top: 10px; }
+#result { margin-top: 15px; font-size: 18px; }
+button { padding: 10px 15px; font-size: 16px; }
+</style>
+</head>
+<body>
+
+<h2>QR Scanner + Kamera 📷</h2>
+
+<button onclick="startCamera()">Start Scanner</button>
+
+<br><br>
+
+<video id="video" autoplay playsinline></video>
+
+<p id="result">Ingen QR scannet endnu</p>
+
+<script>
+let video = document.getElementById("video");
+let resultText = document.getElementById("result");
+
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" },
+      audio: false
+    });
+
+    video.srcObject = stream;
+
+    scanQR();
+
+  } catch (err) {
+    alert("Kamera fejl: " + err.message);
+  }
+}
+
+async function scanQR() {
+  if (!("BarcodeDetector" in window)) {
+    resultText.innerText = "QR scanning understøttes ikke i denne browser 😕";
+    return;
+  }
+
+  const detector = new BarcodeDetector({ formats: ["qr_code"] });
+
+  setInterval(async () => {
+    try {
+      const barcodes = await detector.detect(video);
+
+      if (barcodes.length > 0) {
+        resultText.innerText = "QR fundet: " + barcodes[0].rawValue;
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }, 500);
+}
+</script>
+
+</body>
+</html>
